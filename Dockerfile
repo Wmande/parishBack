@@ -36,15 +36,11 @@ COPY . .
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
-RUN cp .env.example .env \
+RUN [ -f .env ] || touch .env \
     && mkdir -p database storage/framework/{cache,sessions,views} bootstrap/cache \
     && touch database/database.sqlite \
     && chown -R www-data:www-data storage bootstrap/cache database \
-    && chmod -R 775 storage bootstrap/cache database \
-    && php artisan key:generate --force \
-    && php artisan config:clear \
-    && php artisan route:clear \
-    && php artisan view:clear
+    && chmod -R 775 storage bootstrap/cache database
 
 ENV APP_ENV=production
 ENV APP_DEBUG=false
