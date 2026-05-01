@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\SupabaseService;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class NewsController extends Controller
 {
@@ -31,12 +31,12 @@ class NewsController extends Controller
                 ->header('Cache-Control', 'public, max-age=300');
         } catch (\Throwable $e) {
             Log::error('News index failed', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'error' => 'Failed to fetch news',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -51,9 +51,9 @@ class NewsController extends Controller
                 return $this->supabase->getNewsById($id);
             });
 
-            if (!$news) {
+            if (! $news) {
                 return response()->json([
-                    'error' => 'News article not found'
+                    'error' => 'News article not found',
                 ], 404);
             }
 
@@ -61,12 +61,12 @@ class NewsController extends Controller
         } catch (\Throwable $e) {
             Log::error('News show failed', [
                 'id' => $id,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'error' => 'Failed to fetch news article',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -91,19 +91,19 @@ class NewsController extends Controller
             $data['updated_at'] = now()->toISOString();
 
             $news = $this->supabase->createNews($data);
-            
+
             // Clear cache
             Cache::forget('news.all');
 
             return response()->json($news, 201);
         } catch (\Throwable $e) {
             Log::error('News store failed', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'error' => 'Failed to create news',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -128,9 +128,9 @@ class NewsController extends Controller
 
             $news = $this->supabase->updateNews($id, $data);
 
-            if (!$news) {
+            if (! $news) {
                 return response()->json([
-                    'error' => 'News article not found'
+                    'error' => 'News article not found',
                 ], 404);
             }
 
@@ -142,12 +142,12 @@ class NewsController extends Controller
         } catch (\Throwable $e) {
             Log::error('News update failed', [
                 'id' => $id,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'error' => 'Failed to update news',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -165,17 +165,17 @@ class NewsController extends Controller
             Cache::forget("news.{$id}");
 
             return response()->json([
-                'message' => 'News deleted successfully'
+                'message' => 'News deleted successfully',
             ]);
         } catch (\Throwable $e) {
             Log::error('News delete failed', [
                 'id' => $id,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'error' => 'Failed to delete news',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -194,7 +194,7 @@ class NewsController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Search failed',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -211,7 +211,7 @@ class NewsController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Category fetch failed',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -228,7 +228,7 @@ class NewsController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Tag fetch failed',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }

@@ -15,6 +15,6 @@ class News extends Model
         'image',
         'tag',
         'category',
-        'author'
+        'author',
     ];
 }

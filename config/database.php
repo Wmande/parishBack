@@ -98,7 +98,6 @@ return [
             'sslmode' => env('DB_SSLMODE', 'require'),
         ],
 
-
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

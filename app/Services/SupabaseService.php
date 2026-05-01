@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class SupabaseService
 {
     private $baseUrl;
+
     private $key;
 
     public function __construct()
@@ -15,7 +16,7 @@ class SupabaseService
         $this->baseUrl = rtrim(env('SUPABASE_URL'), '/');
         $this->key = env('SUPABASE_SERVICE_ROLE_KEY');   // ← Important change
 
-        if (!$this->baseUrl || !$this->key) {
+        if (! $this->baseUrl || ! $this->key) {
             Log::error('Supabase configuration missing. Check .env file.');
             throw new \Exception('Supabase URL or Service Role Key is not configured.');
         }
@@ -24,16 +25,17 @@ class SupabaseService
     private function headers()
     {
         return [
-            'apikey'        => $this->key,
-            'Authorization' => 'Bearer ' . $this->key,
-            'Content-Type'  => 'application/json',
-            'Prefer'        => 'return=representation'
+            'apikey' => $this->key,
+            'Authorization' => 'Bearer '.$this->key,
+            'Content-Type' => 'application/json',
+            'Prefer' => 'return=representation',
         ];
     }
 
     private function buildUrl(string $path): string
     {
         $path = ltrim($path, '/');
+
         return "{$this->baseUrl}/rest/v1/{$path}";
     }
 
@@ -47,7 +49,7 @@ class SupabaseService
         if ($response->failed()) {
             Log::error('Supabase getNews failed', [
                 'status' => $response->status(),
-                'body' => $response->body()
+                'body' => $response->body(),
             ]);
         }
 
@@ -60,23 +62,25 @@ class SupabaseService
             ->get($this->buildUrl("news?id=eq.{$id}"));
 
         $data = $response->json();
+
         return $data[0] ?? null;
     }
+
     public function createNews($data)
     {
         $response = Http::withHeaders($this->headers())
             ->post($this->buildUrl('news'), $data);
-    
+
         if ($response->failed()) {
             Log::error('Supabase createNews failed', [
                 'status' => $response->status(),
-                'body'   => $response->body()
+                'body' => $response->body(),
             ]);
-            throw new \Exception('Failed to create news: ' . $response->body());
+            throw new \Exception('Failed to create news: '.$response->body());
         }
-    
+
         $data = $response->json();
-    
+
         // Supabase usually returns an array with one object
         return is_array($data) && count($data) > 0 ? $data[0] : $data;
     }
@@ -99,6 +103,7 @@ class SupabaseService
     public function searchNews($query)
     {
         $encodedQuery = urlencode($query);
+
         return Http::withHeaders($this->headers())
             ->get($this->buildUrl("news?or=(title.ilike.*{$encodedQuery}*,excerpt.ilike.*{$encodedQuery}*)&order=created_at.desc"))
             ->json();
