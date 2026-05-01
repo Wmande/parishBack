@@ -3,7 +3,7 @@ name: Backend CI/CD
 on:
   pull_request:
     paths:
-      - "back/**"
+      - "**"
       - ".github/workflows/back-ci-cd.yml"
   push:
     branches:
@@ -11,7 +11,7 @@ on:
     tags:
       - "v*"
     paths:
-      - "back/**"
+      - "**"
       - ".github/workflows/back-ci-cd.yml"
   workflow_dispatch:
 
@@ -27,9 +27,6 @@ jobs:
   ci:
     name: CI (Laravel)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: back
 
     steps:
       - name: Checkout
@@ -50,8 +47,8 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
-          path: back/vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('back/composer.lock') }}
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-php-
 
@@ -124,8 +121,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./back
-          file: ./back/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
