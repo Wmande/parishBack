@@ -16,7 +16,7 @@ class SupabaseService
         $this->baseUrl = rtrim(env('SUPABASE_URL'), '/');
         $this->key = env('SUPABASE_SERVICE_ROLE_KEY');
 
-        if (!$this->baseUrl || !$this->key) {
+        if (! $this->baseUrl || ! $this->key) {
             Log::error('Supabase configuration missing. Check .env file.');
             throw new \Exception('Supabase URL or Service Role Key is not configured.');
         }
@@ -56,12 +56,12 @@ class SupabaseService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 throw new \Exception('Supabase API returned status '.$response->status());
             }
 
             $data = $response->json();
 
-            // Return empty array if no data instead of null
             return is_array($data) ? $data : [];
         } catch (\Exception $e) {
             Log::error('Supabase getNews exception', [
