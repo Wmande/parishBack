@@ -32,6 +32,9 @@ class NewsController extends Controller
         } catch (\Throwable $e) {
             Log::error('News index failed', [
                 'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([

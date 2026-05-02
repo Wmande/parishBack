@@ -14,7 +14,7 @@ class SupabaseService
     public function __construct()
     {
         $this->baseUrl = rtrim(env('SUPABASE_URL'), '/');
-        $this->key = env('SUPABASE_SERVICE_ROLE_KEY');   // ← Important change
+        $this->key = env('SUPABASE_SERVICE_ROLE_KEY');
 
         if (! $this->baseUrl || ! $this->key) {
             Log::error('Supabase configuration missing. Check .env file.');
@@ -41,85 +41,249 @@ class SupabaseService
 
     // ─── NEWS OPERATIONS ─────────────────────────────────────────────────────
 
+    /**
+     * Get all news articles
+     */
     public function getNews()
     {
-        $response = Http::withHeaders($this->headers())
-            ->get($this->buildUrl('news?select=*&order=created_at.desc'));
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->get($this->buildUrl('news?select=*&order=created_at.desc'));
 
-        if ($response->failed()) {
-            Log::error('Supabase getNews failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
+            if ($response->failed()) {
+                Log::error('Supabase getNews failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Supabase API returned status '.$response->status());
+            }
+
+            $data = $response->json();
+
+            // Return empty array if no data instead of null
+            return is_array($data) ? $data : [];
+        } catch (\Exception $e) {
+            Log::error('Supabase getNews exception', [
+                'message' => $e->getMessage(),
             ]);
+            throw $e;
         }
-
-        return $response->json();
     }
 
+    /**
+     * Get a single news article by ID
+     */
     public function getNewsById($id)
     {
-        $response = Http::withHeaders($this->headers())
-            ->get($this->buildUrl("news?id=eq.{$id}"));
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->get($this->buildUrl("news?id=eq.{$id}"));
 
-        $data = $response->json();
+            if ($response->failed()) {
+                Log::error('Supabase getNewsById failed', [
+                    'id' => $id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Failed to fetch news by ID');
+            }
 
-        return $data[0] ?? null;
+            $data = $response->json();
+
+            return (is_array($data) && count($data) > 0) ? $data[0] : null;
+        } catch (\Exception $e) {
+            Log::error('Supabase getNewsById exception', [
+                'id' => $id,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
+    /**
+     * Create a new news article
+     */
     public function createNews($data)
     {
-        $response = Http::withHeaders($this->headers())
-            ->post($this->buildUrl('news'), $data);
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->post($this->buildUrl('news'), $data);
 
-        if ($response->failed()) {
-            Log::error('Supabase createNews failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
+            if ($response->failed()) {
+                Log::error('Supabase createNews failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Failed to create news: '.$response->body());
+            }
+
+            $result = $response->json();
+
+            // Supabase returns an array with one object
+            return is_array($result) && count($result) > 0 ? $result[0] : $result;
+        } catch (\Exception $e) {
+            Log::error('Supabase createNews exception', [
+                'message' => $e->getMessage(),
             ]);
-            throw new \Exception('Failed to create news: '.$response->body());
+            throw $e;
         }
-
-        $data = $response->json();
-
-        // Supabase usually returns an array with one object
-        return is_array($data) && count($data) > 0 ? $data[0] : $data;
     }
 
+    /**
+     * Update a news article
+     */
     public function updateNews($id, $data)
     {
-        $response = Http::withHeaders($this->headers())
-            ->patch($this->buildUrl("news?id=eq.{$id}"), $data);
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->patch($this->buildUrl("news?id=eq.{$id}"), $data);
 
-        return $response->json();
+            if ($response->failed()) {
+                Log::error('Supabase updateNews failed', [
+                    'id' => $id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Failed to update news');
+            }
+
+            $result = $response->json();
+
+            return is_array($result) && count($result) > 0 ? $result[0] : $result;
+        } catch (\Exception $e) {
+            Log::error('Supabase updateNews exception', [
+                'id' => $id,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
+    /**
+     * Delete a news article
+     */
     public function deleteNews($id)
     {
-        return Http::withHeaders($this->headers())
-            ->delete($this->buildUrl("news?id=eq.{$id}"))
-            ->json();
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->delete($this->buildUrl("news?id=eq.{$id}"));
+
+            if ($response->failed()) {
+                Log::error('Supabase deleteNews failed', [
+                    'id' => $id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Failed to delete news');
+            }
+
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::error('Supabase deleteNews exception', [
+                'id' => $id,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
+    /**
+     * Search news articles
+     */
     public function searchNews($query)
     {
-        $encodedQuery = urlencode($query);
+        try {
+            $encodedQuery = urlencode($query);
 
-        return Http::withHeaders($this->headers())
-            ->get($this->buildUrl("news?or=(title.ilike.*{$encodedQuery}*,excerpt.ilike.*{$encodedQuery}*)&order=created_at.desc"))
-            ->json();
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->get($this->buildUrl("news?or=(title.ilike.*{$encodedQuery}*,excerpt.ilike.*{$encodedQuery}*)&order=created_at.desc"));
+
+            if ($response->failed()) {
+                Log::error('Supabase searchNews failed', [
+                    'query' => $query,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Search failed');
+            }
+
+            $data = $response->json();
+
+            return is_array($data) ? $data : [];
+        } catch (\Exception $e) {
+            Log::error('Supabase searchNews exception', [
+                'query' => $query,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
+    /**
+     * Get news articles by category
+     */
     public function getNewsByCategory($category)
     {
-        return Http::withHeaders($this->headers())
-            ->get($this->buildUrl("news?category=eq.{$category}&order=created_at.desc"))
-            ->json();
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->get($this->buildUrl("news?category=eq.{$category}&order=created_at.desc"));
+
+            if ($response->failed()) {
+                Log::error('Supabase getNewsByCategory failed', [
+                    'category' => $category,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Failed to fetch news by category');
+            }
+
+            $data = $response->json();
+
+            return is_array($data) ? $data : [];
+        } catch (\Exception $e) {
+            Log::error('Supabase getNewsByCategory exception', [
+                'category' => $category,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
+    /**
+     * Get news articles by tag
+     */
     public function getNewsByTag($tag)
     {
-        return Http::withHeaders($this->headers())
-            ->get($this->buildUrl("news?tag=eq.{$tag}&order=created_at.desc"))
-            ->json();
+        try {
+            $response = Http::withHeaders($this->headers())
+                ->timeout(10)
+                ->get($this->buildUrl("news?tag=eq.{$tag}&order=created_at.desc"));
+
+            if ($response->failed()) {
+                Log::error('Supabase getNewsByTag failed', [
+                    'tag' => $tag,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                throw new \Exception('Failed to fetch news by tag');
+            }
+
+            $data = $response->json();
+
+            return is_array($data) ? $data : [];
+        } catch (\Exception $e) {
+            Log::error('Supabase getNewsByTag exception', [
+                'tag' => $tag,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 }
