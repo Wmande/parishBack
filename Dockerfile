@@ -28,8 +28,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
+    libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql bcmath gd zip \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql bcmath gd zip \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
@@ -44,11 +45,15 @@ RUN [ -f .env ] || touch .env \
 
 ENV APP_ENV=production
 ENV APP_DEBUG=false
-# Avoid database cache/sessions unless you run migrations (cache/sessions tables).
-# File drivers need no extra tables and match storage permissions below.
 ENV CACHE_STORE=file
 ENV SESSION_DRIVER=file
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["sh", "-c", "\
+    php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan route:clear && \
+    php artisan view:clear && \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
+"]
