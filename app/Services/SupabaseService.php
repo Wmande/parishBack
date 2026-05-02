@@ -13,8 +13,8 @@ class SupabaseService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(env('SUPABASE_URL'), '/');
-        $this->key = env('SUPABASE_SERVICE_ROLE_KEY');
+        $this->baseUrl = rtrim((string) config('services.supabase.url'), '/');
+        $this->key = config('services.supabase.service_role_key');
 
         if (! $this->baseUrl || ! $this->key) {
             Log::error('Supabase configuration missing. Check .env file.');

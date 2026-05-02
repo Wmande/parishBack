@@ -44,6 +44,10 @@ RUN [ -f .env ] || touch .env \
 
 ENV APP_ENV=production
 ENV APP_DEBUG=false
+# Avoid database cache/sessions unless you run migrations (cache/sessions tables).
+# File drivers need no extra tables and match storage permissions below.
+ENV CACHE_STORE=file
+ENV SESSION_DRIVER=file
 
 EXPOSE 10000
 
