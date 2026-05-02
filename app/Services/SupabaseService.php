@@ -16,7 +16,7 @@ class SupabaseService
         $this->baseUrl = rtrim(env('SUPABASE_URL'), '/');
         $this->key = env('SUPABASE_SERVICE_ROLE_KEY');
 
-        if (! $this->baseUrl || ! $this->key) {
+        if (!$this->baseUrl || !$this->key) {
             Log::error('Supabase configuration missing. Check .env file.');
             throw new \Exception('Supabase URL or Service Role Key is not configured.');
         }

@@ -54,7 +54,7 @@ class NewsController extends Controller
                 return $this->supabase->getNewsById($id);
             });
 
-            if (! $news) {
+            if (!$news) {
                 return response()->json([
                     'error' => 'News article not found',
                 ], 404);
@@ -131,7 +131,7 @@ class NewsController extends Controller
 
             $news = $this->supabase->updateNews($id, $data);
 
-            if (! $news) {
+            if (!$news) {
                 return response()->json([
                     'error' => 'News article not found',
                 ], 404);
