@@ -91,7 +91,6 @@ class NewsController extends Controller
             ]);
 
             $data['created_at'] = now()->toISOString();
-            $data['updated_at'] = now()->toISOString();
 
             $news = $this->supabase->createNews($data);
 
@@ -126,8 +125,6 @@ class NewsController extends Controller
                 'category' => 'nullable|string|max:50',
                 'author' => 'nullable|string|max:100',
             ]);
-
-            $data['updated_at'] = now()->toISOString();
 
             $news = $this->supabase->updateNews($id, $data);
 
