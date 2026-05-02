@@ -20,7 +20,7 @@ Route::get('/parish/info', function () {
 Route::get('/debug', function () {
     return response()->json([
         'supabase_url' => config('services.supabase.url'),
-        'supabase_key_set' => !empty(config('services.supabase.service_role_key')),
+        'supabase_key_set' => ! empty(config('services.supabase.service_role_key')),
         'pgsql_loaded' => extension_loaded('pdo_pgsql'),
         'php_version' => PHP_VERSION,
     ]);
