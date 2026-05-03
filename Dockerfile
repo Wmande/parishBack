@@ -34,11 +34,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
+
+# Remove any stale .env or cached config from the build context
+RUN rm -f .env \
+    && rm -f bootstrap/cache/config.php \
+    && rm -f bootstrap/cache/routes*.php \
+    && rm -f bootstrap/cache/services.php
+
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
-RUN [ -f .env ] || touch .env \
-    && mkdir -p database storage/framework/{cache,sessions,views} bootstrap/cache \
+# Setup directories — NO .env creation here
+RUN mkdir -p database storage/framework/{cache,sessions,views} bootstrap/cache \
     && touch database/database.sqlite \
     && chown -R www-data:www-data storage bootstrap/cache database \
     && chmod -R 775 storage bootstrap/cache database
@@ -52,7 +59,7 @@ EXPOSE 10000
 
 CMD ["sh", "-c", "\
     php artisan config:clear && \
-    php artisan cache:clear && \
+    php artisan config:cache && \
     php artisan route:clear && \
     php artisan view:clear && \
     php artisan migrate --force && \
