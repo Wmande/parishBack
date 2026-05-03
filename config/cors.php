@@ -16,7 +16,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://kimililiparish.vercel.app', 'http://localhost:3000'],
+    'allowed_origins' => ['https://kimililiparish.vercel.app', '*'],
 
     'allowed_origins_patterns' => [],
 
